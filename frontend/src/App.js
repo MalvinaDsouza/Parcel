@@ -1,12 +1,8 @@
 // App.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import MapComponent from '../src/component/MapComponent';
-import Map from '../src/component/Map';
-import Line from './component/Line';
-import Short from './component/Short';
-import Icon from './component/Allroutes';
-import Distance from './component/Distance';
+
+import Distance from './components/Distance';
 
 
 
@@ -20,7 +16,7 @@ const App = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/data');
+        const response = await axios.get('http://localhost:3001/api/data');
         setData(response.data);
       } catch (error) {
         console.error('Error:', error);
