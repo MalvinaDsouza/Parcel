@@ -5,13 +5,13 @@ import 'leaflet/dist/leaflet.css';
 const Icon = ({ address, hub }) => {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
-  const tomtomApiKey = 'yEUe2tq2wA9cUsyryFi2D7T32akU1UGW'; // Replace with your TomTom API key
+  const tomtomApiKey = 'yEUe2tq2wA9cUsyryFi2D7T32akU1UGW'; 
 
   useEffect(() => {
-    // Initialize map
+    
     mapRef.current = L.map('map', {
-      center: [0, 0], // Initial center
-      zoom: 2, // Initial zoom level
+      center: [0, 0], 
+      zoom: 2, 
       layers: [
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -30,7 +30,7 @@ const Icon = ({ address, hub }) => {
 
   useEffect(() => {
     if (map) {
-      // Function to get coordinates from an address
+      
       const getCoordinates = async (location) => {
         const response = await fetch(`https://api.tomtom.com/search/2/geocode/${encodeURIComponent(location)}.json?key=${tomtomApiKey}`);
         const data = await response.json();
@@ -42,9 +42,9 @@ const Icon = ({ address, hub }) => {
         }
       };
 
-      // Function to get the route between two coordinates
-      const getRoute = async (start, end) => {
-        const response = await fetch(`https://api.tomtom.com/routing/1/calculateRoute/${start.lat},${start.lon}:${end.lat},${end.lon}/json?key=${tomtomApiKey}&computeBestOrder=true&routeType=shortest`);
+      
+      const getAllRoutes = async (start, end) => {
+        const response = await fetch(`https://api.tomtom.com/routing/1/calculateRoute/${start.lat},${start.lon}:${end.lat},${end.lon}/json?key=${tomtomApiKey}&maxAlternatives=2&routeType=shortest`);
         const data = await response.json();
         if (data.routes && data.routes.length > 0) {
           return data.routes.map(route => ({
@@ -56,7 +56,7 @@ const Icon = ({ address, hub }) => {
         }
       };
 
-      // Fetch coordinates and update map
+      
       const updateMap = async () => {
         try {
           const addressCoords = await getCoordinates(address);
@@ -64,8 +64,8 @@ const Icon = ({ address, hub }) => {
 
           map.setView([addressCoords.lat, addressCoords.lon], 12);
 
-          // Add marker for address with custom icon
-          const addressMarker = L.marker([addressCoords.lat, addressCoords.lon], {
+          
+          L.marker([addressCoords.lat, addressCoords.lon], {
             icon: L.icon({
               iconUrl: process.env.PUBLIC_URL + '/Images/address-icon.svg',
               iconSize: [25, 41], // Size of the icon
@@ -75,7 +75,7 @@ const Icon = ({ address, hub }) => {
           }).addTo(map).bindPopup(address).openPopup();
 
           // Add marker for hub with custom icon
-          const hubMarker = L.marker([hubCoords.lat, hubCoords.lon], {
+          L.marker([hubCoords.lat, hubCoords.lon], {
             icon: L.icon({
               iconUrl: process.env.PUBLIC_URL + '/Images/hub-icon.svg',
               iconSize: [25, 41], // Size of the icon
@@ -85,23 +85,23 @@ const Icon = ({ address, hub }) => {
           }).addTo(map).bindPopup(hub).openPopup();
 
           // Get all routes between the address and hub
-          const routes = await getRoute(hubCoords, addressCoords);
+          const routes = await getAllRoutes(hubCoords, addressCoords);
 
-          // Save routes to server
-          await fetch('http://localhost:3001/api/save-routes', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ addressCoords, hubCoords, routes })
+          console.log('Routes:', routes); // Log routes for debugging
+
+          // Define an array of colors for the routes
+          const colors = ['red', 'black', 'black'];
+
+          // Draw all routes on the map
+          routes.forEach((route, index) => {
+            L.polyline(route.points, { color: colors[index % colors.length] }).addTo(map);
           });
 
-          // Fetch the shortest route from the server
-          const shortestRouteResponse = await fetch('http://localhost:3001/api/shortest-route');
-          const shortestRoute = await shortestRouteResponse.json();
+          // Find the shortest route
+          const shortestRoute = routes.reduce((prev, curr) => (prev.duration < curr.duration ? prev : curr));
 
           // Draw the shortest route on the map in red
-          const polylineShortest = L.polyline(shortestRoute.points, { color: 'red' }).addTo(map);
+          const polylineShortest = L.polyline(shortestRoute.points, { color: 'black' }).addTo(map);
 
           // Adjust map view to fit the shortest route
           map.fitBounds(polylineShortest.getBounds());
