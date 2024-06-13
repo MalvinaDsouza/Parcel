@@ -45,11 +45,11 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
-// Function to create nodes and relationships in Neo4j
+
 const createGraph = async (addressCoords, hubCoords, routes) => {
   const session = driver.session();
   try {
-    // Create nodes
+    
     await session.run(
       'MERGE (a:Location {name: $address, lat: $addressLat, lon: $addressLon}) ' +
       'MERGE (h:Location {name: $hub, lat: $hubLat, lon: $hubLon})',
@@ -63,14 +63,14 @@ const createGraph = async (addressCoords, hubCoords, routes) => {
       }
     );
 
-    // Create relationships
+   
     for (const route of routes) {
       await session.run(
         'MATCH (a:Location {name: "Address"}), (h:Location {name: "Hub"}) ' +
         'MERGE (a)-[r:ROUTE {duration: $duration, points: $points}]->(h)',
         {
           duration: route.duration,
-          points: JSON.stringify(route.points) // Store points as a JSON string
+          points: JSON.stringify(route.points) 
         }
       );
     }
@@ -81,7 +81,7 @@ const createGraph = async (addressCoords, hubCoords, routes) => {
   }
 };
 
-// Endpoint to get data and store it in Neo4j
+
 app.post('/api/save-routes', async (req, res) => {
   const { addressCoords, hubCoords, routes } = req.body;
 
@@ -122,7 +122,7 @@ app.get('/fetch-traffic', async (req, res) => {
   try {
     const response = await fetch(`https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?key=${TOMTOM_API_KEY}&point=${lat},${lon}`);
 
-    // Check if the response is ok (status code 200-299)
+    
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Error fetching traffic data:', errorText);
@@ -132,12 +132,12 @@ app.get('/fetch-traffic', async (req, res) => {
     const responseBody = await response.text();
     console.log('Raw response:', responseBody);
 
-    // Attempt to parse the JSON data
+    
     const data = JSON.parse(responseBody);
 
-    // Store the data in Redis
+   
     await redisClient.set('trafficData', JSON.stringify(data), {
-      EX: 60 * 15 // Expire data after 15 minutes
+      EX: 60 * 15 
     });
 
     res.send('Traffic data stored in Redis');
@@ -147,7 +147,7 @@ app.get('/fetch-traffic', async (req, res) => {
   }
 });
 
-// Retrieve traffic data from Redis
+
 app.get('/traffic-data', async (req, res) => {
   try {
     const data = await redisClient.get('trafficData');
@@ -161,7 +161,7 @@ app.get('/traffic-data', async (req, res) => {
   }
 });
 
-// Display traffic data stored in Redis in the console
+
 app.get('/api/display-traffic', async (req, res) => {
   try {
     const data = await redisClient.get('trafficData');
