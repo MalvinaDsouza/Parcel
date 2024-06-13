@@ -68,42 +68,42 @@ const Icon = ({ address, hub }) => {
           L.marker([addressCoords.lat, addressCoords.lon], {
             icon: L.icon({
               iconUrl: process.env.PUBLIC_URL + '/Images/address-icon.svg',
-              iconSize: [25, 41], // Size of the icon
-              iconAnchor: [12, 41], // Point of the icon which will correspond to marker's location
-              popupAnchor: [1, -34] // Point from which the popup should open relative to the iconAnchor
+              iconSize: [25, 41], 
+              iconAnchor: [12, 41], 
+              popupAnchor: [1, -34] 
             })
           }).addTo(map).bindPopup(address).openPopup();
 
-          // Add marker for hub with custom icon
+         
           L.marker([hubCoords.lat, hubCoords.lon], {
             icon: L.icon({
               iconUrl: process.env.PUBLIC_URL + '/Images/hub-icon.svg',
-              iconSize: [25, 41], // Size of the icon
-              iconAnchor: [12, 41], // Point of the icon which will correspond to marker's location
-              popupAnchor: [1, -34] // Point from which the popup should open relative to the iconAnchor
+              iconSize: [25, 41], 
+              iconAnchor: [12, 41], 
+              popupAnchor: [1, -34] 
             })
           }).addTo(map).bindPopup(hub).openPopup();
 
-          // Get all routes between the address and hub
+         
           const routes = await getAllRoutes(hubCoords, addressCoords);
 
-          console.log('Routes:', routes); // Log routes for debugging
+          console.log('Routes:', routes); 
 
-          // Define an array of colors for the routes
+          
           const colors = ['red', 'black', 'black'];
 
-          // Draw all routes on the map
+          
           routes.forEach((route, index) => {
             L.polyline(route.points, { color: colors[index % colors.length] }).addTo(map);
           });
 
-          // Find the shortest route
+          
           const shortestRoute = routes.reduce((prev, curr) => (prev.duration < curr.duration ? prev : curr));
 
-          // Draw the shortest route on the map in red
+        
           const polylineShortest = L.polyline(shortestRoute.points, { color: 'black' }).addTo(map);
 
-          // Adjust map view to fit the shortest route
+          
           map.fitBounds(polylineShortest.getBounds());
         } catch (error) {
           console.error('Error initializing map:', error);
